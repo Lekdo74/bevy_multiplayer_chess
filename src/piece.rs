@@ -24,12 +24,6 @@ pub struct Piece {
     pub color: PieceColor,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Cell {
-    pub piece: Piece,
-    pub position: (usize, usize),
-}
-
 
 
 impl fmt::Display for PieceType {
@@ -54,11 +48,5 @@ impl fmt::Display for Piece {
         } else {
             write!(f, "{}", piece_rep.to_lowercase())
         }
-    }
-}
-
-impl fmt::Display for Cell {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.piece)
     }
 }

@@ -1,4 +1,5 @@
-use bevy::{prelude::*, render::{settings::{Backends, RenderCreation, WgpuSettings}, RenderPlugin}, window::WindowMode};
+use bevy::{prelude::*, render::{settings::{Backends, RenderCreation, WgpuSettings}, RenderPlugin}, window::{PrimaryWindow, WindowMode, WindowResolution}, winit};
+use bevy::window::{WindowPlugin};
 
 pub struct MyDefaultPlugins;
 
@@ -16,13 +17,15 @@ impl Plugin for MyDefaultPlugins {
                 // .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        resizable: false,
+                        resolution: (800.0, 800.0).into(),
+                        resizable: true,
                         focused: true,
-                        mode: WindowMode::BorderlessFullscreen,
+                        // mode: WindowMode::BorderlessFullscreen,
                         ..default()
                     }),
                     ..default()
                 }),
         );
+        // .add_systems(Startup, center_window);
     }
 }

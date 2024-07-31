@@ -6,7 +6,7 @@ pub struct ResourcesPlugin;
 
 #[derive(Debug, Resource)]
 pub struct Board {
-    pub cells: Vec<Cell>,
+    pub pieces: [[Option<Piece>; 8]; 8],
 }
 
 impl Plugin for ResourcesPlugin {
@@ -24,97 +24,107 @@ fn setup_background_color(mut commands: Commands) {
 
 impl Default for Board {
     fn default() -> Self {
-        let mut cells = Vec::new();
+        let mut pieces: [[Option<Piece>; 8]; 8] = [[None; 8]; 8];
 
         let piece_rows = [(PieceColor::White, 0), (PieceColor::Black, 7)];
 
-        for (color, row) in piece_rows.iter() {
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Rook,
-                    color: *color,
-                },
-                position: (0, *row),
+        for &(color, row) in piece_rows.iter() {
+            pieces[row][0] = Some(Piece {
+                piece_type: PieceType::Rook,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Knight,
-                    color: *color,
-                },
-                position: (1, *row),
+            pieces[row][1] = Some(Piece {
+                piece_type: PieceType::Knight,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Bishop,
-                    color: *color,
-                },
-                position: (2, *row),
+            pieces[row][2] = Some(Piece {
+                piece_type: PieceType::Bishop,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Queen,
-                    color: *color,
-                },
-                position: (3, *row),
+            pieces[row][3] = Some(Piece {
+                piece_type: PieceType::Queen,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::King,
-                    color: *color,
-                },
-                position: (4, *row),
+            pieces[row][4] = Some(Piece {
+                piece_type: PieceType::King,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Bishop,
-                    color: *color,
-                },
-                position: (5, *row),
+            pieces[row][5] = Some(Piece {
+                piece_type: PieceType::Bishop,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Knight,
-                    color: *color,
-                },
-                position: (6, *row),
+            pieces[row][6] = Some(Piece {
+                piece_type: PieceType::Knight,
+                color,
             });
-            cells.push(Cell {
-                piece: Piece {
-                    piece_type: PieceType::Rook,
-                    color: *color,
-                },
-                position: (7, *row),
+            pieces[row][7] = Some(Piece {
+                piece_type: PieceType::Rook,
+                color,
             });
 
-            // Pawns
+            let pawn_row = if color == PieceColor::White { 1 } else { 6 };
             for col in 0..8 {
-                cells.push(Cell {
-                    piece: Piece {
-                        piece_type: PieceType::Pawn,
-                        color: *color,
-                    },
-                    position: (col, if *color == PieceColor::White { 1 } else { 6 }),
+                pieces[pawn_row][col] = Some(Piece {
+                    piece_type: PieceType::Pawn,
+                    color,
                 });
             }
         }
 
-        println!();
-        print_board(&cells);
-
-        Self { cells }
+        let board = Self { pieces };
+        print_board(&board);
+        board
     }
 }
 
-pub fn print_board(cells: &Vec<Cell>) {
-    let mut board: Vec<Vec<String>> = vec![vec![" ".to_string(); 8]; 8];
+pub fn print_board(board: &Board) {
+    print!("   ");
+    for i in 0..8 {
+        print!("---");
+        if i < 7 {
+            print!(" ");
+        }
+    }
+    println!();
 
-    for cell in cells {
-        let (x, y) = cell.position;
-        let piece_rep = format!("{}", cell.piece);
-        board[y][x] = piece_rep;
+    for (i, row) in board.pieces.iter().rev().enumerate() {
+        let row_label = 8 - i;
+        print!("{} ", row_label); // Print the row label
+
+        print!("|"); // Start of row
+
+        for (j, cell) in row.iter().enumerate() {
+            let cell_str = match cell {
+                Some(piece) => piece.to_string(),
+                None => " ".to_string(),
+            };
+
+            print!(" {} |", cell_str);
+
+            // if j < row.len() - 1 {
+            //     print!(" "); // Add spacing between columns
+            // }
+        }
+        println!(); // End of row
+
+        // Print the separator line
+        print!("   ");
+        for i in 0..row.len() {
+            print!("---");
+            if i < row.len() - 1 {
+                print!(" ");
+            }
+        }
+        println!();
     }
 
-    for row in board.iter().rev() {
-        println!("{:?}", row);
+    // Print column labels
+    print!("   ");
+    for col in 'a'..='h' {
+        print!(" {} ", col);
+        if col != 'h' {
+            print!(" ");
+        }
     }
+    println!();
 }
