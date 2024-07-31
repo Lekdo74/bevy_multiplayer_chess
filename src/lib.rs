@@ -1,7 +1,8 @@
 pub mod close_on_esc;
 pub mod state;
 pub mod camera;
-pub mod background_color;
+pub mod ressources;
+pub mod piece;
 
 pub mod constants;
 
