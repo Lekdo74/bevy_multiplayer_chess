@@ -5,14 +5,14 @@ use crate::{piece::*, state::GameState, BG_COLOR};
 pub struct ResourcesPlugin;
 
 #[derive(Debug, Resource)]
-pub struct BoardState {
-    pub pieces: Vec<PiecePosition>,
+pub struct Board {
+    pub cells: Vec<Cell>,
 }
 
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Loading), setup_background_color)
-            .insert_resource(BoardState::default());
+            .insert_resource(Board::default());
     }
 }
 
@@ -22,63 +22,63 @@ fn setup_background_color(mut commands: Commands) {
     )));
 }
 
-impl Default for BoardState {
+impl Default for Board {
     fn default() -> Self {
-        let mut pieces = Vec::new();
+        let mut cells = Vec::new();
 
         let piece_rows = [(PieceColor::White, 0), (PieceColor::Black, 7)];
 
         for (color, row) in piece_rows.iter() {
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Rook,
                     color: *color,
                 },
                 position: (0, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Knight,
                     color: *color,
                 },
                 position: (1, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Bishop,
                     color: *color,
                 },
                 position: (2, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Queen,
                     color: *color,
                 },
                 position: (3, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::King,
                     color: *color,
                 },
                 position: (4, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Bishop,
                     color: *color,
                 },
                 position: (5, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Knight,
                     color: *color,
                 },
                 position: (6, *row),
             });
-            pieces.push(PiecePosition {
+            cells.push(Cell {
                 piece: Piece {
                     piece_type: PieceType::Rook,
                     color: *color,
@@ -88,7 +88,7 @@ impl Default for BoardState {
 
             // Pawns
             for col in 0..8 {
-                pieces.push(PiecePosition {
+                cells.push(Cell {
                     piece: Piece {
                         piece_type: PieceType::Pawn,
                         color: *color,
@@ -99,22 +99,21 @@ impl Default for BoardState {
         }
 
         println!();
-        print_board(&pieces);
+        print_board(&cells);
 
-        Self { pieces }
+        Self { cells }
     }
 }
 
-pub fn print_board(pieces: &Vec<PiecePosition>) {
+pub fn print_board(cells: &Vec<Cell>) {
     let mut board: Vec<Vec<String>> = vec![vec![" ".to_string(); 8]; 8];
 
-    for pos in pieces {
-        let (x, y) = pos.position;
-        let piece_rep = format!("{}", pos.piece);
+    for cell in cells {
+        let (x, y) = cell.position;
+        let piece_rep = format!("{}", cell.piece);
         board[y][x] = piece_rep;
     }
 
-    // Print the board
     for row in board.iter().rev() {
         println!("{:?}", row);
     }
