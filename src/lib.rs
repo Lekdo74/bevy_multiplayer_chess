@@ -1,3 +1,4 @@
+pub mod default_plugins;
 pub mod close_on_esc;
 pub mod state;
 pub mod camera;
