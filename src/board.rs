@@ -3,7 +3,7 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 
-use crate::{piece::{self, *}, state::GameState, GlobalTextureAtlas, SPRITE_W};
+use crate::{piece::*, state::GameState, GlobalTextureAtlas, SPRITE_W};
 
 #[derive(Debug, Resource)]
 pub struct Board {
@@ -160,7 +160,7 @@ fn init_board(
     board: Res<Board>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut next_state: ResMut<NextState<GameState>>,
-    mut board_configuration: ResMut<BoardConfiguration>,
+    board_configuration: ResMut<BoardConfiguration>,
     board_entities: Query<Entity, With<BoardEntity>>,
 ) {
     if window_query.is_empty() {
@@ -255,7 +255,7 @@ fn resize_board(
     handle: Res<GlobalTextureAtlas>,
     board: Res<Board>,
     mut resize_events: EventReader<WindowResized>,
-    mut board_configuration: ResMut<BoardConfiguration>,
+    board_configuration: ResMut<BoardConfiguration>,
     board_entities: Query<Entity, With<BoardEntity>>,
 ) {
     let events: Vec<&WindowResized> = resize_events.read().collect();

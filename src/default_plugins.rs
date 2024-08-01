@@ -1,5 +1,4 @@
-use bevy::{prelude::*, render::{settings::{Backends, RenderCreation, WgpuSettings}, RenderPlugin}, window::{PrimaryWindow, WindowMode, WindowResolution}, winit};
-use bevy::window::{WindowPlugin};
+use bevy::{prelude::*, render::{settings::{Backends, RenderCreation, WgpuSettings}, RenderPlugin}};
 
 pub struct MyDefaultPlugins;
 
