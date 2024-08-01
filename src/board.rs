@@ -161,6 +161,7 @@ fn init_board(
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut next_state: ResMut<NextState<GameState>>,
     mut board_configuration: ResMut<BoardConfiguration>,
+    board_entities: Query<Entity, With<BoardEntity>>,
 ) {
     if window_query.is_empty() {
         return;
@@ -170,7 +171,7 @@ fn init_board(
 
     let (width, height) = (window.width(), window.height());
 
-    create_board(&mut commands, &handle, &board, width, height, board_configuration);
+    create_board(&mut commands, &handle, &board, width, height, board_configuration, board_entities);
 
     next_state.set(GameState::InGame);
 }
@@ -182,7 +183,12 @@ fn create_board(
     width: f32,
     height: f32,
     mut board_configuration: ResMut<BoardConfiguration>,
+    board_entities: Query<Entity, With<BoardEntity>>,
 ) {
+    for entity in board_entities.iter() {
+        commands.entity(entity).despawn();
+    }
+
     let board_origin = Vec2::new(-width / 2.0, height / 2.0);
     let cell_size = (width.min(height)) / 8.0;
     let half_cell_size = cell_size / 2.0;
@@ -249,8 +255,8 @@ fn resize_board(
     handle: Res<GlobalTextureAtlas>,
     board: Res<Board>,
     mut resize_events: EventReader<WindowResized>,
-    board_entities: Query<Entity, With<BoardEntity>>,
     mut board_configuration: ResMut<BoardConfiguration>,
+    board_entities: Query<Entity, With<BoardEntity>>,
 ) {
     let events: Vec<&WindowResized> = resize_events.read().collect();
 
@@ -262,9 +268,5 @@ fn resize_board(
 
     let (width, height) = (last_event.unwrap().width, last_event.unwrap().height);
 
-    for entity in board_entities.iter() {
-        commands.entity(entity).despawn();
-    }
-
-    create_board(&mut commands, &handle, &board, width, height, board_configuration);
+    create_board(&mut commands, &handle, &board, width, height, board_configuration, board_entities);
 }

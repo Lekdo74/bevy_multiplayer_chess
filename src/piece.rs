@@ -3,7 +3,7 @@ use std::fmt;
 use bevy::prelude::*;
 
 use crate::{
-    board::{BoardConfiguration, PieceEntity},
+    board::{print_board, Board, BoardConfiguration, PieceEntity},
     state::GameState,
     CursorPosition, SPRITE_SHEET_W,
 };
@@ -163,14 +163,16 @@ fn handle_drop(
     mut commands: Commands,
     board_config: Res<BoardConfiguration>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
-    mut dragging_query: Query<(&mut Transform, Entity), With<Dragging>>,
+    mut dragging_query: Query<(&mut Transform, Entity, &Dragging), With<Dragging>>,
     cursor_position: Res<CursorPosition>,
+    mut board: ResMut<Board>,
+    mut piece_query: Query<(&Transform, Entity), (With<PieceEntity>, Without<Dragging>)>,
 ) {
     if !mouse_button_input.just_released(MouseButton::Left) {
         return;
     }
 
-    for (mut transform_dragging, entity_piece) in dragging_query.iter_mut() {
+    for (mut transform_dragging, entity_piece, dragging) in dragging_query.iter_mut() {
         let board_x = (((-board_config.board_origin.x + cursor_position.position.unwrap().x)
             / board_config.cell_size) as usize)
             .clamp(0, 7);
@@ -180,6 +182,31 @@ fn handle_drop(
 
         transform_dragging.translation = Vec3::new(board_config.board_origin.x + board_x as f32 * board_config.cell_size + board_config.half_cell_size, board_config.board_origin.y - board_y as f32 * board_config.cell_size - board_config.half_cell_size, 1.0);
 
+
+        board.pieces[board_y][board_x].take();
+
+        if let Some(cursor_position) = cursor_position.position {
+            for (transform_piece, entity_piece) in piece_query.iter_mut() {
+                if transform_piece.translation.x
+                    > cursor_position.x - board_config.half_cell_size as f32
+                    && transform_piece.translation.x
+                        < cursor_position.x + board_config.half_cell_size as f32
+                    && transform_piece.translation.y
+                        < cursor_position.y + board_config.half_cell_size as f32
+                    && transform_piece.translation.y
+                        > cursor_position.y - board_config.half_cell_size as f32
+                {
+                    commands.entity(entity_piece).despawn();
+                }
+            }
+        }
+
+        if let Some(piece) = board.pieces[dragging.init_y][dragging.init_x].take() {
+            board.pieces[board_y][board_x] = Some(piece);
+        }
+
         commands.entity(entity_piece).remove::<Dragging>();
+
+        print_board(&board);
     }
 }
