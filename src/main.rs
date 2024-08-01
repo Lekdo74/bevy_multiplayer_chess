@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_multiplayer_chess::{
-    camera::MyCameraPlugin, close_on_esc::CloseOnEscapePlugin, default_plugins::MyDefaultPlugins, ressources::ResourcesPlugin, state::GameState
+    board::BoardPlugin, camera::MyCameraPlugin, close_on_esc::CloseOnEscapePlugin, default_plugins::MyDefaultPlugins, resources::ResourcesPlugin, state::GameState
 };
 
 fn main() {
@@ -9,6 +9,7 @@ fn main() {
         .add_plugins(CloseOnEscapePlugin)
         .add_plugins(MyCameraPlugin)
         .add_plugins(ResourcesPlugin)
+        .add_plugins(BoardPlugin)
         .init_state::<GameState>()
         .run();
 }

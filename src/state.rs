@@ -5,6 +5,7 @@ pub enum GameState {
     #[default]
     Loading,
     MainMenu,
-    GameInit,
+    GameInitResources,
+    GameInitEntities,
     InGame,
 }

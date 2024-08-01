@@ -1,25 +1,20 @@
 use bevy::prelude::*;
 
-use crate::{piece::*, state::GameState, BG_COLOR};
+use crate::{piece::*, state::GameState, GlobalTextureAtlas};
 
-pub struct ResourcesPlugin;
+// .add_systems(OnEnter(GameState::GameInitResources), setup_board_resource);
 
 #[derive(Debug, Resource)]
 pub struct Board {
     pub pieces: [[Option<Piece>; 8]; 8],
 }
 
-impl Plugin for ResourcesPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Loading), setup_background_color)
-            .insert_resource(Board::default());
-    }
-}
+pub struct BoardPlugin;
 
-fn setup_background_color(mut commands: Commands) {
-    commands.insert_resource(ClearColor(Color::srgb_u8(
-        BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
-    )));
+impl Plugin for BoardPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(GameState::GameInitEntities), init_board);
+    }
 }
 
 impl Default for Board {
@@ -71,9 +66,7 @@ impl Default for Board {
             }
         }
 
-        let board = Self { pieces };
-        print_board(&board);
-        board
+        Self { pieces }
     }
 }
 
@@ -89,25 +82,20 @@ pub fn print_board(board: &Board) {
 
     for (i, row) in board.pieces.iter().rev().enumerate() {
         let row_label = 8 - i;
-        print!("{} ", row_label); // Print the row label
+        print!("{} ", row_label);
 
-        print!("|"); // Start of row
+        print!("|");
 
-        for (j, cell) in row.iter().enumerate() {
+        for (_, cell) in row.iter().enumerate() {
             let cell_str = match cell {
                 Some(piece) => piece.to_string(),
                 None => " ".to_string(),
             };
 
             print!(" {} |", cell_str);
-
-            // if j < row.len() - 1 {
-            //     print!(" "); // Add spacing between columns
-            // }
         }
-        println!(); // End of row
+        println!();
 
-        // Print the separator line
         print!("   ");
         for i in 0..row.len() {
             print!("---");
@@ -118,7 +106,6 @@ pub fn print_board(board: &Board) {
         println!();
     }
 
-    // Print column labels
     print!("   ");
     for col in 'a'..='h' {
         print!(" {} ", col);
@@ -127,4 +114,35 @@ pub fn print_board(board: &Board) {
         }
     }
     println!();
+}
+
+
+fn init_board(
+    mut commands: Commands,
+    handle: Res<GlobalTextureAtlas>,
+    board: Res<Board>,
+) {
+    println!("heyheyHEYYY")
+    // let board_origin = board_config.board_origin;
+    // let cell_size = board_config.cell_size;
+    // let half_cell_size = board_config.half_cell_size;
+
+    // for i in 0..8 {
+    //     for j in 0..8 {
+    //         commands.spawn((
+    //             SpriteBundle {
+    //                 transform: Transform::from_translation(vec3(board_origin.x + (cell_size * i) as f32 + half_cell_size as f32, board_origin.y - (cell_size * j) as f32 - half_cell_size as f32, 0.0))
+    //                 .with_scale(Vec3::splat(cell_size as f32 / SPRITE_W as f32)),
+    //                 texture: handle.image.clone().unwrap(),
+    //                 ..default()
+    //             },
+    //             TextureAtlas {
+    //                 layout: handle.layout.clone().unwrap(),
+    //                 index: if (i + j) % 2 == 0 {12} else {13},
+    //             },
+    //             GameEntity,
+    //             board_state.cells[i as usize][j as usize],
+    //         ));
+    //     }
+    // }
 }
