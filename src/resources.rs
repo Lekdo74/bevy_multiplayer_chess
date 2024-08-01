@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 
 use crate::{
@@ -19,10 +21,14 @@ pub struct GlobalTextureAtlas {
     pub image: Option<Handle<Image>>,
 }
 
+#[derive(Resource)]
+pub struct ResizeCooldownTimer(pub Timer);
+
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(LoadCompletion::default())
             .insert_resource(GlobalTextureAtlas::default())
+            .insert_resource(ResizeCooldownTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)))
             .add_systems(OnEnter(GameState::Loading), setup_background_color)
             .add_systems(OnEnter(GameState::Loading), load_assets)
             .add_systems(

@@ -1,6 +1,9 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    window::{PrimaryWindow, WindowResized},
+};
 
-use crate::{piece::*, state::GameState, GlobalTextureAtlas};
+use crate::{piece::*, state::GameState, GlobalTextureAtlas, ResizeCooldownTimer, SPRITE_W};
 
 // .add_systems(OnEnter(GameState::GameInitResources), setup_board_resource);
 
@@ -11,9 +14,13 @@ pub struct Board {
 
 pub struct BoardPlugin;
 
+#[derive(Component)]
+struct BoardEntity;
+
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::GameInitEntities), init_board);
+        app.add_systems(OnEnter(GameState::GameInitEntities), init_board)
+            .add_systems(Update, resize_board.run_if(in_state(GameState::InGame)));
     }
 }
 
@@ -116,33 +123,80 @@ pub fn print_board(board: &Board) {
     println!();
 }
 
-
 fn init_board(
     mut commands: Commands,
     handle: Res<GlobalTextureAtlas>,
     board: Res<Board>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
-    println!("heyheyHEYYY")
-    // let board_origin = board_config.board_origin;
-    // let cell_size = board_config.cell_size;
-    // let half_cell_size = board_config.half_cell_size;
+    if window_query.is_empty() {
+        return;
+    }
 
-    // for i in 0..8 {
-    //     for j in 0..8 {
-    //         commands.spawn((
-    //             SpriteBundle {
-    //                 transform: Transform::from_translation(vec3(board_origin.x + (cell_size * i) as f32 + half_cell_size as f32, board_origin.y - (cell_size * j) as f32 - half_cell_size as f32, 0.0))
-    //                 .with_scale(Vec3::splat(cell_size as f32 / SPRITE_W as f32)),
-    //                 texture: handle.image.clone().unwrap(),
-    //                 ..default()
-    //             },
-    //             TextureAtlas {
-    //                 layout: handle.layout.clone().unwrap(),
-    //                 index: if (i + j) % 2 == 0 {12} else {13},
-    //             },
-    //             GameEntity,
-    //             board_state.cells[i as usize][j as usize],
-    //         ));
-    //     }
-    // }
+    let window = window_query.single();
+
+    let (width, height) = (window.width(), window.height());
+
+    display_board(&mut commands, &handle, &board, width, height);
+
+    next_state.set(GameState::InGame);
+}
+
+fn display_board(
+    commands: &mut Commands,
+    handle: &Res<GlobalTextureAtlas>,
+    board: &Res<Board>,
+    width: f32,
+    height: f32,
+) {
+    let board_origin = Vec2::new(-width / 2.0, height / 2.0);
+    let cell_size = (width.min(height)) / 8.0;
+    let half_cell_size = cell_size / 2.0;
+
+    for i in 0..8 {
+        for j in 0..8 {
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_translation(Vec3::new(
+                        board_origin.x + half_cell_size + (cell_size * i as f32),
+                        board_origin.y - half_cell_size - (cell_size * j as f32),
+                        0.0,
+                    ))
+                    .with_scale(Vec3::splat(cell_size / SPRITE_W as f32)),
+                    texture: handle.image.clone().unwrap(),
+                    ..Default::default()
+                },
+                TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: if (i + j) % 2 == 0 { 12 } else { 13 },
+                },
+                BoardEntity,
+            ));
+        }
+    }
+}
+
+fn resize_board(
+    mut commands: Commands,
+    handle: Res<GlobalTextureAtlas>,
+    board: Res<Board>,
+    mut resize_events: EventReader<WindowResized>,
+    board_entities: Query<Entity, With<BoardEntity>>,
+) {
+    let events: Vec<&WindowResized> = resize_events.read().collect();
+
+    if events.is_empty() {
+        return;
+    }
+
+    let last_event = events.last();
+
+    let (width, height) = (last_event.unwrap().width, last_event.unwrap().height);
+
+    for entity in board_entities.iter() {
+        commands.entity(entity).despawn();
+    }
+
+    display_board(&mut commands, &handle, &board, width, height);
 }
