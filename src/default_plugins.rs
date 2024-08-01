@@ -20,6 +20,7 @@ impl Plugin for MyDefaultPlugins {
                         resolution: (800.0, 800.0).into(),
                         resizable: true,
                         focused: true,
+                        title: "Chess".to_string(),
                         // mode: WindowMode::BorderlessFullscreen,
                         ..default()
                     }),

@@ -1,10 +1,11 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::{
-    board::Board, state::GameState, BG_COLOR, SPRITE_H, SPRITE_SHEET_H, SPRITE_SHEET_PATH,
-    SPRITE_SHEET_W, SPRITE_W,
+    board::{Board, BoardConfiguration},
+    state::GameState,
+    BG_COLOR, SPRITE_H, SPRITE_SHEET_H, SPRITE_SHEET_PATH, SPRITE_SHEET_W, SPRITE_W,
 };
 
 pub struct ResourcesPlugin;
@@ -22,20 +23,23 @@ pub struct GlobalTextureAtlas {
 }
 
 #[derive(Resource)]
-pub struct ResizeCooldownTimer(pub Timer);
+pub struct CursorPosition {
+    pub position: Option<Vec2>,
+}
 
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(LoadCompletion::default())
             .insert_resource(GlobalTextureAtlas::default())
-            .insert_resource(ResizeCooldownTimer(Timer::new(Duration::from_secs(1), TimerMode::Repeating)))
+            .insert_resource(CursorPosition::default())
             .add_systems(OnEnter(GameState::Loading), setup_background_color)
             .add_systems(OnEnter(GameState::Loading), load_assets)
             .add_systems(
                 Update,
                 check_load_completion.run_if(in_state(GameState::Loading)),
             )
-            .add_systems(OnEnter(GameState::GameInitResources), setup_board_resource);
+            .add_systems(OnEnter(GameState::GameInitResources), setup_board_resource)
+            .add_systems(Update, update_cursor_position);
     }
 }
 
@@ -77,8 +81,26 @@ fn check_load_completion(
 
 fn setup_board_resource(mut commands: Commands, mut next_state: ResMut<NextState<GameState>>) {
     commands.insert_resource(Board::default());
+    commands.insert_resource(BoardConfiguration::default());
 
     next_state.set(GameState::GameInitEntities);
+}
+
+fn update_cursor_position(
+    mut cursor_pos: ResMut<CursorPosition>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&Camera, &GlobalTransform), With<Camera>>,
+) {
+    if window_query.is_empty() || camera_query.is_empty() {
+        cursor_pos.position = None;
+    }
+
+    let (camera, camera_transform) = camera_query.single();
+    let window = window_query.single();
+    cursor_pos.position = window
+        .cursor_position()
+        .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+        .map(|ray| ray.origin.truncate());
 }
 
 impl Default for LoadCompletion {
@@ -96,5 +118,11 @@ impl Default for GlobalTextureAtlas {
             layout: None,
             image: None,
         }
+    }
+}
+
+impl Default for CursorPosition {
+    fn default() -> Self {
+        Self { position: None }
     }
 }
